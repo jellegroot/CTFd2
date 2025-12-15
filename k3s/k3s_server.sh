@@ -19,4 +19,23 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="${K3S_VERSION}" sh -s - serv
   --node-taint CriticalAddonsOnly=true:NoExecute \
   --tls-san ${LOADBALANCER_IP}
 
+echo "==> Configure kubeconfig for user"
+
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $(id -u):$(id -g) ~/.kube/config
+chmod 600 ~/.kube/config
+
+echo "==> Update kubeconfig server endpoint"
+sed -i "s|https://127.0.0.1:6443|https://${LOADBALANCER_IP}:6443|g" ~/.kube/config
+
+echo "==> Installation complete"
+echo "kubectl will now connect via https://${LOADBALANCER_IP}:6443"
+
+
+
+
+
+
+
 echo "==> DONE"
