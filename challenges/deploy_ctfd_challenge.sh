@@ -24,6 +24,8 @@ if [ ! -d ".ctf" ]; then
   ctf init
 fi
 
+docker compose -f $1/docker-compose.yaml up -d
+
 # Ctf cli commands
 ctf challenge add $1 >/dev/null 2>&1 </dev/null
 ctf challenge install $1 >/dev/null 2>&1 </dev/null
