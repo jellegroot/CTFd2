@@ -28,6 +28,7 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
 - **Competition Ready**: Complete with scoring, teams, and user management
 
 ## Requirements
+This is tested on ubuntu 24.04
 
 Before setting up the platform, ensure you have the following installed:
 
