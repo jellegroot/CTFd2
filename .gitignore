@@ -12,7 +12,6 @@ venv*
 .venv*
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 lib/
