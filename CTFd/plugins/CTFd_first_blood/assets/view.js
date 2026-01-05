@@ -1,12 +1,17 @@
 CTFd._internal.challenge.data = undefined
 
-CTFd._internal.challenge.renderer = CTFd.lib.markdown();
-
+// CTFd 3.x uses window.challenge.render instead of CTFd.lib.markdown()
+CTFd._internal.challenge.renderer = null;
 
 CTFd._internal.challenge.preRender = function () { }
 
 CTFd._internal.challenge.render = function (markdown) {
-    return CTFd._internal.challenge.renderer.render(markdown)
+    // Use the global challenge renderer available in CTFd 3.x
+    if (window.challenge && window.challenge.render) {
+        return window.challenge.render(markdown)
+    }
+    // Fallback: return the markdown as-is
+    return markdown
 }
 
 
