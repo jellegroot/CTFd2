@@ -30,6 +30,7 @@ flask db upgrade
 
 # Load CSS into database
 python load_css.py
+python load_rules_of_conduct.py
 
 # Start CTFd
 echo "Starting CTFd"
