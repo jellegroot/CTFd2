@@ -25,6 +25,9 @@
               role="tab"
           >{% trans %}Access Tokens{% endtrans %}
           </button>
+          <a href="{{ url_for('mfa.setup') }}" class="nav-link">
+            <i class="fas fa-shield-alt"></i> {% trans %}Two-Factor Auth{% endtrans %}
+          </a>
         </div>
       </div>
 

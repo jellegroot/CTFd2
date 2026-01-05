@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>{% trans %}Two-Factor Authentication{% endtrans %}</h1>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header">
+          <h4>{% if mfa_enabled %}{% trans %}MFA Enabled{% endtrans %}{% else %}{% trans %}Setup MFA{% endtrans %}{% endif %}</h4>
+        </div>
+        <div class="card-body">
+          {% if not mfa_enabled %}
+            <p>{% trans %}Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.){% endtrans %}</p>
+            
+            <div class="text-center mb-4">
+              <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+            </div>
+            
+            <p class="text-center">{% trans %}Or enter this secret key manually:{% endtrans %}</p>
+            <div class="alert alert-info text-center">
+              <code style="font-size: 1.2em;">{{ secret }}</code>
+            </div>
+            
+            <form id="verify-form" class="mt-4">
+            <input type="hidden" name="nonce" value="{{ nonce }}">
+                <label for="code" class="form-label">{% trans %}Enter the 6-digit code from your authenticator app:{% endtrans %}</label>
+                <input type="text" id="code" name="code" class="form-control" maxlength="6" pattern="[0-9]{6}" required autofocus>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">{% trans %}Enable MFA{% endtrans %}</button>
+            </form>
+            
+            <div id="result-message" class="mt-3"></div>
+          {% else %}
+            <div class="alert alert-success">
+              <i class="fas fa-shield-alt"></i> {% trans %}Two-factor authentication is enabled on your account.{% endtrans %}
+            </div>
+            
+            <form id="disable-form" class="mt-4">
+            <input type="hidden" name="nonce" value="{{ nonce }}">
+                <label for="password" class="form-label">{% trans %}Current Password{% endtrans %}</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label for="code" class="form-label">{% trans %}MFA Code{% endtrans %}</label>
+                <input type="text" id="code" name="code" class="form-control" maxlength="6" pattern="[0-9]{6}" required>
+              </div>
+              <button type="submit" class="btn btn-danger w-100">{% trans %}Disable MFA{% endtrans %}</button>
+            </form>
+            
+            <div id="result-message" class="mt-3"></div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="mt-3">
+        <a href="{{ url_for('views.settings') }}" class="btn btn-secondary">{% trans %}Back to Settings{% endtrans %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const verifyForm = document.getElementById('verify-form');
+  const disableForm = document.getElementById('disable-form');
+  const resultDiv = document.getElementById('result-message');
+  
+  if (verifyForm) {
+    verifyForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const code = document.getElementById('code').value;
+      const nonce = document.querySelector('input[name="nonce"]').value;
+      
+      try {
+        const response = await fetch('/mfa/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ code: code, nonce: nonce })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          resultDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+        }
+      } catch (error) {
+        resultDiv.innerHTML = '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+      }
+    });
+  }
+  
+  if (disableForm) {
+    disableForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      const code = document.getElementById('code').value;
+      const nonce = document.querySelector('input[name="nonce"]').value;
+      
+      if (!confirm('Are you sure you want to disable MFA? Your account will be less secure.')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/mfa/disable', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ password: password, code: code, nonce: nonce })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          resultDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          resultDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+        }
+      } catch (error) {
+        resultDiv.innerHTML = '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+      }
+    });
+  }
+});
+</script>
+{% endblock %}
